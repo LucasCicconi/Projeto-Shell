@@ -23,7 +23,7 @@ void add_path(char *path) {
     if (num_paths < MAX_PATHS) {
         search_paths[num_paths++] = path;
     } else {
-        printf("Limite máximo de caminhos atingido.\n");
+        print_error(MAX_PATHS_LIMIT);
     }
 }
 
@@ -32,7 +32,7 @@ char *search_executable(char *command) {
     for (int i = 0; i < num_paths; i++) {
         char *full_path = malloc(strlen(search_paths[i]) + strlen(command) + 2); // +2 para / e \0
         if (!full_path) {
-            perror("malloc");
+            print_error(MALLOC_FAILED;)
             exit(EXIT_FAILURE);
         }
         sprintf(full_path, "%s/%s", search_paths[i], command);
@@ -84,7 +84,7 @@ void execute_command(char *command) {
     if (executable_path != NULL) {
         pid = fork();
         if (pid < 0) {
-            perror("fork");
+            print_error(FORK_FAILED);
             return;
         } else if (pid == 0) { 
             if (execv(executable_path, args) == -1) {
@@ -102,7 +102,7 @@ void execute_command(char *command) {
     
     pid = fork();
     if (pid < 0) {
-        perror("fork");
+        print_error(FORK_FAILED);
         exit(EXIT_FAILURE);
     } else if (pid == 0) { // Processo filho
         if (execvp(args[0], args) == -1) {
