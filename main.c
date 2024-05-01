@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     if (argc > 1) { // Se foi fornecido um arquivo batch
         batch_file = fopen(argv[1], "r");
         if (!batch_file) {
-            perror("Erro ao abrir arquivo batch");
+            print_error(BATCH_FAILED);
             exit(EXIT_FAILURE);
         }
     }
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
             if (getcwd(cwd, sizeof(cwd)) != NULL) {
                 printf("Projeto-Shell>%s: ", cwd); // Adiciona o caminho atual ao prompt
             } else {
-                perror("getcwd");
+                print_error(PATH_FAILED);
                 exit(EXIT_FAILURE);
             }
             if (fgets(command, MAX_COMMAND_LENGTH, stdin) == NULL) {
