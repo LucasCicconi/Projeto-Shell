@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <dirent.h>
-#include "error_handling.h"
 
 int main(int argc, char *argv[]) {
 
@@ -12,7 +11,7 @@ int main(int argc, char *argv[]) {
     // Abre o diretório
     DIR *dir = opendir(argv[1]);
     if (dir == NULL) {
-        print_error(DIRECTORY_FAILED);
+        printf("Error opening directory\n");
         return 1;
     }
 

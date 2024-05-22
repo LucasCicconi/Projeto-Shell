@@ -32,7 +32,7 @@ char *search_executable(char *command) {
     for (int i = 0; i < num_paths; i++) {
         char *full_path = malloc(strlen(search_paths[i]) + strlen(command) + 2); // +2 para / e \0
         if (!full_path) {
-            print_error(MALLOC_FAILED;)
+            print_error(MALLOC_FAILED);
             exit(EXIT_FAILURE);
         }
         sprintf(full_path, "%s/%s", search_paths[i], command);
@@ -89,7 +89,7 @@ void execute_command(char *command) {
         } else if (pid == 0) { 
             if (execv(executable_path, args) == -1) {
                 print_error(EXEC_FAILED);
-                exit(EXIT_FAILURE);
+                //exit(EXIT_FAILURE);
             }
         } else { 
             int status;
@@ -106,8 +106,8 @@ void execute_command(char *command) {
         exit(EXIT_FAILURE);
     } else if (pid == 0) { // Processo filho
         if (execvp(args[0], args) == -1) {
-            print_error(EXEC_FAILED);
-            exit(EXIT_FAILURE);
+            print_error(EXEC_FAILED); // da dando erro aq
+            //exit(EXIT_FAILURE);
         }
     } else { // Processo pai
         int status;
