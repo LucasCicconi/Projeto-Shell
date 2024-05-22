@@ -3,7 +3,7 @@ Este é um interpretador de comandos Shell desenvolvido em C, com o objetivo de 
 
 ## Desenvolvedores
 - Heitor Scheidt
-- Lucas Ciccone
+- Lucas Cicconi
 - Vinicius Hardy
 
 ## Funcionalidades Básicas
