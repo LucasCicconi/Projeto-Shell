@@ -10,15 +10,43 @@ Este é um interpretador de comandos Shell desenvolvido em C, com o objetivo de 
 ## Funcionalidades Básicas
 O Shell é capaz de:
 
-- Receber comandos via terminal ou de um arquivo batch.
+- Receber comandos:
+    - Via terminal (Interativamente)
+    - Por um batch de comandos em arquivo 
+        - Exemplo de uso: 
+            ```shell
+            # 1.
+            user@computer:~$ ./program input_example.txt # argumento
+            # 2.
+            user@computer:~$ ./program < input_example.txt # input override
+            ```
+        - Obs. Para evitar comportamento não esperado o arquivo precisa possuir uma linha em branco no final, use como base o input_example.txt
 - Interpretar cada comando e decidir se é um comando interno (built-in) ou um programa externo.
 - Executar cada comando em um novo processo filho.
-- Comandos Internos (Built-in)
-- exit: Finaliza o Shell.
-- ls: lista o conteúdo do diretório atual.
-- cd <caminho>: Muda o diretório de trabalho.
-- path <caminho> [<caminho> <caminho> ...]: Define caminhos para busca de executáveis.
 
+- Comandos Internos (Built-in)
+``` shell
+exit
+Finaliza o Shell.
+
+ls [OPÇÕES]... [DIRETÓRIO]...
+Lista o conteúdo do(s) diretório(s)
+    OPÇÕES
+        -a Lista todos os diretórios
+        -l Lista os diretórios com mais informações
+    DIRETÓRIO
+        <CAMINHO DO DIRETÓRIO>
+
+cd [CAMINHO]
+Muda o diretório de trabalho.
+    CAMINHO
+        <CAMINHO DO DIRETÓRIO>
+
+path [CAMINHO]...
+Define caminhos para busca de executáveis.
+    CAMINHO
+        <CAMINHO DO DIRETÓRIO>
+```
 ## Condições de Erro
 O Shell trata condições de erro e imprime mensagens ao usuário.
 
@@ -33,6 +61,9 @@ Os argumentos dos comandos são separados por espaços. Não é necessário se p
 
 ## Compilação
 Para compilar o projeto, execute o Makefile fornecido.
-        make
-        ./program
-        ```
+``` shell
+make ./program [OPÇÕES]
+OPÇÕES
+    all Builda com as libs personalizadas (ls, cat)
+    clean Deleta arquivos
+```

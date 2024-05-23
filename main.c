@@ -1,8 +1,9 @@
-//main.c
+// main.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include "error_handling.h"
 #include "shell_functions.h"
 
@@ -12,44 +13,47 @@ int main(int argc, char *argv[]) {
     char command[MAX_COMMAND_LENGTH];
     char cwd[MAX_COMMAND_LENGTH];
     FILE *batch_file = NULL;
-    
+
     initialize_paths();
 
-    if (argc > 1) { // Se foi fornecido um arquivo batch
+    if (argc > 1) {  // Se foi fornecido um arquivo batch
         batch_file = fopen(argv[1], "r");
         if (!batch_file) {
             print_error(BATCH_FAILED);
             exit(EXIT_FAILURE);
         }
     }
-    
+
     while (1) {
-        if (batch_file) { // Se estiver lendo de um arquivo batch
+        if (batch_file) {  // Se estiver lendo de um arquivo batch
             if (fgets(command, MAX_COMMAND_LENGTH, batch_file) == NULL) {
-                break; 
+                break;
             }
-        } else { // Se estiver lendo interativamente do terminal
-            if (getcwd(cwd, sizeof(cwd)) != NULL) {
-                printf("Projeto-Shell>%s: ", cwd); // Adiciona o caminho atual ao prompt
-            } else {
+        } else {  // Se estiver lendo interativamente do terminal
+            if (getcwd(cwd, sizeof(cwd)) == NULL) {
                 print_error(PATH_FAILED);
                 exit(EXIT_FAILURE);
             }
+
+            printf("Projeto-Shell>%s: ", cwd);  // Adiciona o caminho atual ao prompt
+
             if (fgets(command, MAX_COMMAND_LENGTH, stdin) == NULL) {
                 print_error(READ_ERROR);
                 break;
             }
+            printf("\n");
         }
-        
+
         // Remove o caractere de nova linha, se presente
         command[strcspn(command, "\n")] = '\0';
-        
+
         execute_command(command);
+        printf("\n");
     }
-    
+
     if (batch_file) {
         fclose(batch_file);
     }
-    
+
     return 0;
 }

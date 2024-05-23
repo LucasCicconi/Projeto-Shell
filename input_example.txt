@@ -1,0 +1,7 @@
+cat main.c
+ls -a ../ /home
+ls -a .sadas
+ls -l .
+cd ../
+ls .
+exit

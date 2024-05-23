@@ -11,6 +11,13 @@
 #include <time.h>
 #include <unistd.h>
 
+void print_name(const char *name) {
+    if (strchr(name, ' ') != NULL)
+        printf("'%s'", name);
+    else
+        printf("%s", name);
+}
+
 void print_file_info(const char *path, const char *name) {
     struct stat file_stat;
 
@@ -22,7 +29,7 @@ void print_file_info(const char *path, const char *name) {
     strcat(whole_path, "\0");
 
     if (stat(whole_path, &file_stat) < 0) {
-        fprintf(stderr, "ls -l: %s: %s\n", name, strerror(errno));
+        printf("ls -l: %s: %s\n", name, strerror(errno));
         free(whole_path);
         return;
     }
@@ -51,7 +58,9 @@ void print_file_info(const char *path, const char *name) {
     strftime(timebuf, sizeof(timebuf), "%b %d %H:%M", tm_info);
     printf(" %s", timebuf);
 
-    printf(" %s\n", name);
+    printf(" ");
+    print_name(name);
+    printf("\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -76,13 +85,13 @@ int main(int argc, char *argv[]) {
     struct dirent *entry;
 
     for (int i = 1; i < argc; i++) {
-        if (strncmp(argv[i], "-", 1) == 0)
+        if (argv[i][0] == '-')
             continue;
 
         printf("%s:\n", argv[i]);
 
         if ((dir = opendir(argv[i])) == NULL) {
-            fprintf(stderr, "ls: %s: %s\n", argv[i], strerror(errno));
+            printf("ls: %s: %s\n", argv[i], strerror(errno));
             continue;
         }
 
@@ -93,10 +102,17 @@ int main(int argc, char *argv[]) {
             if (show_long) {
                 print_file_info(argv[i], entry->d_name);
             } else {
-                printf("%s\n", entry->d_name);
+                print_name(entry->d_name);
+                printf(" ");
             }
         }
-        printf("\n");
+
+        if (show_long != 1) {
+            if ((i != argc - 1) & (argc != 2))
+                printf("\n\n");
+            else
+                printf("\n");
+        }
 
         closedir(dir);
     }
