@@ -14,6 +14,7 @@ typedef enum {
     MAX_PATHS_LIMIT, // Limite máximo de caminhos atingido
     MALLOC_FAILED, // Erro no Malloc
     FORK_FAILED, // Erro na cração do Fork
+    OPEN_FAILED, //Erro ao abrir o arquivo de saída
 
 } ErrorCode;
 
