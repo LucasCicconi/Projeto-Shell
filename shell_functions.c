@@ -16,9 +16,10 @@ int num_paths = 0;
 char shell_directory[MAX_COMMAND_LENGTH]; // Variável para armazenar o diretório do shell
 
 void initialize_paths() {
-    search_paths[0] = "/bin";
-    search_paths[1] = "/usr/bin";
-    num_paths = 2;
+    search_paths[0] = "custom_lib";
+    search_paths[1] = "/bin";
+    search_paths[2] = "/usr/bin";
+    num_paths = 3;
 
     if (getcwd(shell_directory, sizeof(shell_directory)) == NULL) {
         print_error(PATH_FAILED);
