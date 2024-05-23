@@ -29,11 +29,19 @@ O Shell é capaz de:
 exit
 Finaliza o Shell.
 
+cat [OPÇÕES] [ARQUIVO]
+Lista o conteúdo do(s) diretório(s)
+    OPÇÕES
+        -h Lista os comandos permitidos e utilização
+    ARQUIVO
+        <CAMINHO DO ARQUIVO>
+
 ls [OPÇÕES]... [DIRETÓRIO]...
 Lista o conteúdo do(s) diretório(s)
     OPÇÕES
         -a Lista todos os diretórios
         -l Lista os diretórios com mais informações
+        -h Lista os comandos permitidos e utilização
     DIRETÓRIO
         <CAMINHO DO DIRETÓRIO>
 

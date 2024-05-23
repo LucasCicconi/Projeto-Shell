@@ -63,11 +63,21 @@ void print_file_info(const char *path, const char *name) {
     printf("\n");
 }
 
+void print_help() {
+    printf("ls [OPÇÕES]... [DIRETÓRIO]...\n");
+    printf("Lista o conteúdo do(s) diretório(s)\n");
+    printf("    OPÇÕES\n");
+    printf("        -a Lista todos os diretórios\n");
+    printf("        -l Lista os diretórios com mais informações\n");
+    printf("    DIRETÓRIO\n");
+    printf("        <CAMINHO DO DIRETÓRIO>\n");
+}
+
 int main(int argc, char *argv[]) {
     int show_all = 0, show_long = 0;
     int opt;
 
-    while ((opt = getopt(argc, argv, "la")) != -1) {
+    while ((opt = getopt(argc, argv, "lah")) != -1) {
         switch (opt) {
             case 'l':
                 show_long = 1;
@@ -75,8 +85,11 @@ int main(int argc, char *argv[]) {
             case 'a':
                 show_all = 1;
                 break;
+            case 'h':
+                print_help();
+                return 0;
             default:
-                fprintf(stderr, "Usage: ls [-l] [-a]\n");
+                fprintf(stderr, "Usage: ls [-l] [-a] [-h]\n");
                 exit(EXIT_FAILURE);
         }
     }

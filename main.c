@@ -41,7 +41,6 @@ int main(int argc, char *argv[]) {
                 print_error(READ_ERROR);
                 break;
             }
-            printf("\n");
         }
 
         // Remove o caractere de nova linha, se presente
