@@ -4,22 +4,29 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include "shell_functions.h"
 #include "error_handling.h"
 
 #define MAX_PATHS 10
+#define MAX_COMMAND_LENGTH 1024
 
 char *search_paths[MAX_PATHS];
 int num_paths = 0;
+char shell_directory[MAX_COMMAND_LENGTH]; // Variável para armazenar o diretório do shell
 
 void initialize_paths() {
-    // Inicializa a lista de caminhos com o caminho padrão
-    search_paths[0] = "/bin"; // Adicione mais caminhos padrão, se desejar
-    num_paths = 1;
+    search_paths[0] = "/bin";
+    search_paths[1] = "/usr/bin";
+    num_paths = 2;
+
+    if (getcwd(shell_directory, sizeof(shell_directory)) == NULL) {
+        print_error(PATH_FAILED);
+        exit(EXIT_FAILURE);
+    }
 }
 
 void add_path(char *path) {
-    // Adiciona um novo caminho à lista
     if (num_paths < MAX_PATHS) {
         search_paths[num_paths++] = path;
     } else {
@@ -28,89 +35,132 @@ void add_path(char *path) {
 }
 
 char *search_executable(char *command) {
-    // Procura o executável nas listas de caminhos
     for (int i = 0; i < num_paths; i++) {
-        char *full_path = malloc(strlen(search_paths[i]) + strlen(command) + 2); // +2 para / e \0
+        char *full_path = malloc(strlen(search_paths[i]) + strlen(command) + 2);
         if (!full_path) {
             print_error(MALLOC_FAILED);
             exit(EXIT_FAILURE);
         }
         sprintf(full_path, "%s/%s", search_paths[i], command);
         if (access(full_path, X_OK) == 0) {
-            return full_path; // Retorna o caminho completo se encontrado
+            return full_path;
         }
         free(full_path);
     }
-    return NULL; // Retorna NULL se não encontrado
+    return NULL;
 }
 
-void execute_command(char *command) {
-    char *args[64]; 
+void execute_single_command(char *command) {
+    char *args[64];
     int arg_count = 0;
     pid_t pid;
-    
-    char *token;
-    const char *delimiters = " \t\n";
-    
-    token = strtok(command, delimiters);
+
+    char *output_file = NULL;
+    char *redirection = strchr(command, '>');
+    if (redirection != NULL) {
+        *redirection = '\0';
+        redirection++;
+        while (*redirection == ' ') redirection++; // Pula os espaços iniciais
+        output_file = redirection;
+    }
+
+    char *token = strtok(command, " ");
     while (token != NULL && arg_count < 64) {
         args[arg_count++] = token;
-        token = strtok(NULL, delimiters);
+        token = strtok(NULL, " ");
     }
     args[arg_count] = NULL;
-    
-    // Comandos internos
+
     if (strcmp(args[0], "exit") == 0) {
         exit(EXIT_SUCCESS);
     } else if (strcmp(args[0], "cd") == 0) {
         if (arg_count > 1) {
             if (chdir(args[1]) != 0) {
                 print_error(CD_FAILED);
+            } else {
+                if (getcwd(shell_directory, sizeof(shell_directory)) == NULL) {
+                    print_error(PATH_FAILED);
+                    exit(EXIT_FAILURE);
+                }
             }
         } else {
             printf("Uso: cd <caminho>\n");
         }
-        return; 
+        return;
     } else if (strcmp(args[0], "path") == 0) {
-        // Define os caminhos especificados
+        num_paths = 0;
         for (int i = 1; i < arg_count; i++) {
             add_path(args[i]);
         }
-        return; 
+        printf("Caminhos armazenados:\n");
+        for (int i = 0; i < num_paths; i++) {
+            printf("%s\n", search_paths[i]);
+        }
+        return;
     }
 
-    // Comando externo
     char *executable_path = search_executable(args[0]);
     if (executable_path != NULL) {
         pid = fork();
         if (pid < 0) {
             print_error(FORK_FAILED);
             return;
-        } else if (pid == 0) { 
-            if (execv(executable_path, args) == -1) {
-                print_error(EXEC_FAILED);
-                //exit(EXIT_FAILURE);
+        } else if (pid == 0) {
+            if (output_file) {
+                int fd = open(output_file, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
+                if (fd < 0) {
+                    print_error(OPEN_FAILED);
+                    exit(EXIT_FAILURE);
+                }
+                dup2(fd, STDOUT_FILENO);
+                close(fd);
             }
-        } else { 
+            execv(executable_path, args);
+            print_error(EXEC_FAILED);
+            exit(EXIT_FAILURE);
+        } else {
             int status;
             waitpid(pid, &status, 0);
         }
-    free(executable_path);
+        free(executable_path); // Liberar a memória alocada para o caminho do executável
     } else {
-        //print_error(INVALID_COMMAND);
-    }
-    
-    pid = fork();
-    if (pid < 0) {
-        print_error(FORK_FAILED);
-        exit(EXIT_FAILURE);
-    } else if (pid == 0) { // Processo filho
-        if (execvp(args[0], args) == -1) {
-            print_error(EXEC_FAILED); // da dando erro aq
-            //exit(EXIT_FAILURE);
-        }
-    } else { // Processo pai
-        int status;
-        waitpid(pid, &status, 0);
+        print_error(INVALID_COMMAND);
     }
 }
+
+
+void execute_command(char *command) {
+    char *single_command;
+    char *rest = command;
+    pid_t pid;
+
+    while ((single_command = strsep(&rest, "&")) != NULL) {
+        while (*single_command == ' ') single_command++; // Pula os espaços iniciais
+
+        if (strcmp(single_command, "exit") == 0) {
+            exit(EXIT_SUCCESS);
+        } else if (strncmp(single_command, "cd ", 3) == 0) {
+            char *path = single_command + 3; // Pega o caminho após "cd "
+            if (chdir(path) != 0) {
+                print_error(CD_FAILED);
+            } else {
+                if (getcwd(shell_directory, sizeof(shell_directory)) == NULL) {
+                    print_error(PATH_FAILED);
+                    exit(EXIT_FAILURE);
+                }
+            }
+        } else {
+            pid = fork();
+            if (pid < 0) {
+                print_error(FORK_FAILED);
+                return;
+            } else if (pid == 0) {
+                execute_single_command(single_command);
+                exit(EXIT_SUCCESS);
+            }
+        }
+    }
+
+    while (wait(NULL) > 0);
+}
+

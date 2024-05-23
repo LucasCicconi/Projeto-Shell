@@ -37,6 +37,9 @@ void print_error(ErrorCode error_code) {
         case FORK_FAILED:
             printf("Error: Fork failed.\n");
             break;
+        case OPEN_FAILED:
+            fprintf(stderr, "Erro: Falha ao abrir o arquivo de saída.\n");
+            break;
         default:
             printf("Unknown error.\n");
             break;

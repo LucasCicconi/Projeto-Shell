@@ -13,6 +13,8 @@ int main(int argc, char *argv[]) {
     char cwd[MAX_COMMAND_LENGTH];
     FILE *batch_file = NULL;
     
+    initialize_paths();
+
     if (argc > 1) { // Se foi fornecido um arquivo batch
         batch_file = fopen(argv[1], "r");
         if (!batch_file) {
