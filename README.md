@@ -5,6 +5,7 @@ Este é um interpretador de comandos Shell desenvolvido em C, com o objetivo de 
 - Heitor Scheidt
 - Lucas Cicconi
 - Vinicius Hardy
+- Rafael Waiti
 
 ## Funcionalidades Básicas
 O Shell é capaz de:
