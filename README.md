@@ -15,12 +15,8 @@ O Shell é capaz de:
     - Por um batch de comandos em arquivo 
         - Exemplo de uso: 
             ```shell
-            # 1.
-            user@computer:~$ ./program input_example.txt # argumento
-            # 2.
-            user@computer:~$ ./program < input_example.txt # input override
+            user@computer:~$ ./program input_example.txt
             ```
-        - Obs. Para evitar comportamento não esperado o arquivo precisa possuir uma linha em branco no final, use como base o input_example.txt
 - Interpretar cada comando e decidir se é um comando interno (built-in) ou um programa externo.
 - Executar cada comando em um novo processo filho.
 
