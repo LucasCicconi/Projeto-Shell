@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
         // Remove o caractere de nova linha, se presente
         command[strcspn(command, "\n")] = '\0';
 
-        execute_command(command);
+        execute_command(command, batch_file);
         printf("\n");
     }
 

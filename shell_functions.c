@@ -1,11 +1,13 @@
-//shell_functions.c
+// shell_functions.c
+#include "shell_functions.h"
+
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/wait.h>
-#include <fcntl.h>
-#include "shell_functions.h"
+#include <unistd.h>
+
 #include "error_handling.h"
 
 #define MAX_PATHS 10
@@ -13,7 +15,7 @@
 
 char *search_paths[MAX_PATHS];
 int num_paths = 0;
-char shell_directory[MAX_COMMAND_LENGTH]; // Variável para armazenar o diretório do shell
+char shell_directory[MAX_COMMAND_LENGTH];  // Variável para armazenar o diretório do shell
 
 void initialize_paths() {
     search_paths[0] = "custom_lib";
@@ -61,7 +63,7 @@ void execute_single_command(char *command) {
     if (redirection != NULL) {
         *redirection = '\0';
         redirection++;
-        while (*redirection == ' ') redirection++; // Pula os espaços iniciais
+        while (*redirection == ' ') redirection++;  // Pula os espaços iniciais
         output_file = redirection;
     }
 
@@ -123,25 +125,24 @@ void execute_single_command(char *command) {
             int status;
             waitpid(pid, &status, 0);
         }
-        free(executable_path); // Liberar a memória alocada para o caminho do executável
+        free(executable_path);  // Liberar a memória alocada para o caminho do executável
     } else {
         print_error(INVALID_COMMAND);
     }
 }
 
-
-void execute_command(char *command) {
+void execute_command(char *command, FILE *fp) {
     char *single_command;
     char *rest = command;
     pid_t pid;
 
     while ((single_command = strsep(&rest, "&")) != NULL) {
-        while (*single_command == ' ') single_command++; // Pula os espaços iniciais
+        while (*single_command == ' ') single_command++;  // Pula os espaços iniciais
 
         if (strcmp(single_command, "exit") == 0) {
             exit(EXIT_SUCCESS);
         } else if (strncmp(single_command, "cd ", 3) == 0) {
-            char *path = single_command + 3; // Pega o caminho após "cd "
+            char *path = single_command + 3;  // Pega o caminho após "cd "
             if (chdir(path) != 0) {
                 print_error(CD_FAILED);
             } else {
@@ -156,6 +157,9 @@ void execute_command(char *command) {
                 print_error(FORK_FAILED);
                 return;
             } else if (pid == 0) {
+                if (fp) {
+                    fclose(fp);
+                }
                 execute_single_command(single_command);
                 exit(EXIT_SUCCESS);
             }
@@ -164,4 +168,3 @@ void execute_command(char *command) {
 
     while (wait(NULL) > 0);
 }
-
