@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <getopt.h>
 
 void print_name(const char *name) {
     if (strchr(name, ' ') != NULL)
@@ -21,12 +22,11 @@ void print_name(const char *name) {
 void print_file_info(const char *path, const char *name) {
     struct stat file_stat;
 
-    char *whole_path = (char *)malloc(sizeof(path) + 1 + sizeof(name) + 1);
+    char *whole_path = (char *)malloc(strlen(path) + 1 + strlen(name) + 1);
 
     strcpy(whole_path, path);
     strcat(whole_path, "/");
     strcat(whole_path, name);
-    strcat(whole_path, "\0");
 
     if (stat(whole_path, &file_stat) < 0) {
         printf("ls -l: %s: %s\n", name, strerror(errno));
@@ -69,6 +69,7 @@ void print_help() {
     printf("    OPÇÕES\n");
     printf("        -a Lista todos os diretórios\n");
     printf("        -l Lista os diretórios com mais informações\n");
+    printf("        -h, --help Exibe esta mensagem de ajuda\n");
     printf("    DIRETÓRIO\n");
     printf("        <CAMINHO DO DIRETÓRIO>\n");
 }
@@ -77,7 +78,12 @@ int main(int argc, char *argv[]) {
     int show_all = 0, show_long = 0;
     int opt;
 
-    while ((opt = getopt(argc, argv, "lah")) != -1) {
+    static struct option long_options[] = {
+        {"help", no_argument, 0, 'h'},
+        {0, 0, 0, 0}
+    };
+
+    while ((opt = getopt_long(argc, argv, "lah", long_options, NULL)) != -1) {
         switch (opt) {
             case 'l':
                 show_long = 1;
@@ -94,40 +100,54 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    DIR *dir;
-    struct dirent *entry;
+    if (optind == argc) {
+        argv[argc] = ".";
+        argc++;
+    }
 
-    for (int i = 1; i < argc; i++) {
-        if (argv[i][0] == '-')
-            continue;
+    struct stat path_stat;
 
-        printf("%s:\n", argv[i]);
-
-        if ((dir = opendir(argv[i])) == NULL) {
+    for (int i = optind; i < argc; i++) {
+        if (stat(argv[i], &path_stat) != 0) {
             printf("ls: %s: %s\n", argv[i], strerror(errno));
             continue;
         }
 
-        while ((entry = readdir(dir)) != NULL) {
-            if (!show_all && entry->d_name[0] == '.') {
+        if (S_ISDIR(path_stat.st_mode)) {
+            printf("%s:\n", argv[i]);
+            DIR *dir;
+            struct dirent *entry;
+
+            if ((dir = opendir(argv[i])) == NULL) {
+                printf("ls: %s: %s\n", argv[i], strerror(errno));
                 continue;
             }
+
+            while ((entry = readdir(dir)) != NULL) {
+                if (!show_all && entry->d_name[0] == '.') {
+                    continue;
+                }
+                if (show_long) {
+                    print_file_info(argv[i], entry->d_name);
+                } else {
+                    print_name(entry->d_name);
+                    printf(" ");
+                }
+            }
+
+            if (show_long != 1) {
+                printf("\n");
+            }
+
+            closedir(dir);
+        } else {
             if (show_long) {
-                print_file_info(argv[i], entry->d_name);
+                print_file_info(".", argv[i]);
             } else {
-                print_name(entry->d_name);
-                printf(" ");
+                print_name(argv[i]);
+                printf("\n");
             }
         }
-
-        if (show_long != 1) {
-            if ((i != argc - 1) & (argc != 2))
-                printf("\n\n");
-            else
-                printf("\n");
-        }
-
-        closedir(dir);
     }
 
     return 0;
